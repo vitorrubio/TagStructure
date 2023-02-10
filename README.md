@@ -1,27 +1,27 @@
-# Struct para gerenciar Tags no C#
+﻿# Struct para gerenciar Tags no C#
 
-Ontem eu tentei fazer um tipo no C# para servir como tags para os produtos / servi�os da minha empresa, e que pudesse ser usada em qualquer classe que precisasse te tags e que pudesse ser lido/gravado no banco de dados usando EF como se fosse uma string normal.
+Ontem eu tentei fazer um tipo no C# para servir como tags para os produtos / serviços da minha empresa, e que pudesse ser usada em qualquer classe que precisasse te tags e que pudesse ser lido/gravado no banco de dados usando EF como se fosse uma string normal.
 Queria que atendesse aos seguintes requisitos:
-1. mantivesse uma lista de strings �nicas e em min�scula
-2. fosse convers�vel para string (com o ToString mas implementamos tamb�m overload de convers�o impl�cita) retornando a lista de tags �nicas em min�sculas, separadas por v�rgula e ordenadas.
-3. fosse convers�vel DE string
+1. mantivesse uma lista de strings únicas e em minúscula
+2. fosse conversível para string (com o ToString mas implementamos também overload de conversão implícita) retornando a lista de tags únicas em minúsculas, separadas por vírgula e ordenadas.
+3. fosse conversível DE string
 4. Se comportasse como string de todas as formas
 5. Se parecesse com um tipo nativo do .Net
-6. Fosse no meu dom�nio um value object
-7. Fosse compat�vel com o EF
+6. Fosse no meu domínio um value object
+7. Fosse compatível com o EF
 
-Um disclaimer aqui: essa classe n�o vai contar as tags para medir relev�ncia ou fazer tag cloud. 
+Um disclaimer aqui: essa classe não vai contar as tags para medir relevância ou fazer tag cloud. 
 
-Quero deixar claro que meu primeiro c�digo est� muito longe de estar correto, na verdade est� um lixo, n�o o use. Tem v�rias coisas absolutamente erradas e � um bom exemplo de como mesmo devs experientes podem cometer grandes erros em coisas simples. 
+Quero deixar claro que meu primeiro código está muito longe de estar correto, na verdade está um lixo, não o use. Tem várias coisas absolutamente erradas e é um bom exemplo de como mesmo devs experientes podem cometer grandes erros em coisas simples. 
 
-O meu primeiro c�digo eu fiz a classe Product, a struct Tags (gostaria de insistir em struct por enquanto) e 4 testes unit�rios. 
+O meu primeiro código eu fiz a classe Product, a struct Tags (gostaria de insistir em struct por enquanto) e 4 testes unitários. 
 Dois testes falharam e dois passaram, e eu fiquei intrigado com o motivo que levou dois deles a falharem e propus o desafio ontem no [replit](https://replit.com/)
-Vou postar aqui o c�digo errado, os primeiros acertos que fiz e o reposit�rio no github com o c�digo correto. No reposit�rio do github teremos v�rias branches com os nomes iteracao1, iteracao2 e assim por diante para voc� poder ver a evolu��o no c�digo com o passar do tempo. Na Main/Master teremos a �ltima vers�o do c�digo. 
+Vou postar aqui o código errado, os primeiros acertos que fiz e o repositório no github com o código correto. No repositório do github teremos várias branches com os nomes iteracao1, iteracao2 e assim por diante para você poder ver a evolução no código com o passar do tempo. Na Main/Master teremos a última versão do código. 
 
-Abaixo o c�digo da itera��o ZERO. 
+Abaixo o código da iteração ZERO. 
 
 ```
-///ATEN��O: C�DIGO REDONDAMENTE ERRADO PARA FINS DID�TICOS
+///ATENÇÃO: CÓDIGO REDONDAMENTE ERRADO PARA FINS DIDÁTICOS
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Linq;
@@ -155,19 +155,19 @@ namespace TagStructureTest
 
 ## Change Log
 
-### Itera��o 1
+### Iteração 1
 
-Mudamos a List<string> interna para um HashSet<string> porque o hashset j� garante a unicidade das tags. Fizemos a renomea��o de algumas vair�veis, e mais 9 testes. 3 de cria��o, 3 de add e 3 de remove.
-Deixamos a HashSet<string> como readonly, para n�o mudarmos sua inst�ncia, mas mesmo assim ela (e todo o restante), � mut�vel. 
-Deixamos a ordena��o s� para a sa�da ToString. 
-J� podemos criar Tags a partir de strings usando um dos constructores ou convert�-las para strings, mas ainda n�o podemos simplesmente atribuir um objeto tags a uma string, ou uma string ao Tags. Tamb�m n�o temos o que � recomend�vel pela microsoft: Override de Equals, GetHashCode, etc.
-Igualdade entre tags com o mesmo conte�do, como se fossem um record, Equal(), GetHashCode(), ==, nada disso est� funcionando.
+Mudamos a List<string> interna para um HashSet<string> porque o hashset já garante a unicidade das tags. Fizemos a renomeação de algumas vairáveis, e mais 9 testes. 3 de criação, 3 de add e 3 de remove.
+Deixamos a HashSet<string> como readonly, para não mudarmos sua instância, mas mesmo assim ela (e todo o restante), é mutável. 
+Deixamos a ordenação só para a saída ToString. 
+Já podemos criar Tags a partir de strings usando um dos constructores ou convertê-las para strings, mas ainda não podemos simplesmente atribuir um objeto tags a uma string, ou uma string ao Tags. Também não temos o que é recomendável pela microsoft: Override de Equals, GetHashCode, etc.
+Igualdade entre tags com o mesmo conteúdo, como se fossem um record, Equal(), GetHashCode(), ==, nada disso está funcionando.
 
 
 
-### Itera��o 2
+### Iteração 2
 
-Adicionamos mais esses testes ao que foi feito na itera��o 1 e todos passaram:
+Adicionamos mais esses testes ao que foi feito na iteração 1 e todos passaram:
 
 ```
         [TestMethod]
@@ -249,7 +249,7 @@ Adicionamos mais esses testes ao que foi feito na itera��o 1 e todos passaram:
         }
 ```
 
-Criamos testes que falham com certeza, alguns deles nem compilam por isso a parte que n�o compila est� comentada para vermos os outros falharem:
+Criamos testes que falham com certeza, alguns deles nem compilam por isso a parte que não compila está comentada para vermos os outros falharem:
 ```
         [TestMethod]
         public void TagsWithSameContentsShouldBeEquals()
@@ -258,7 +258,7 @@ Criamos testes que falham com certeza, alguns deles nem compilam por isso a part
             Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag5");
             Assert.AreEqual(tags1, tags2);
             Assert.IsTrue(tags1.Equals(tags2));
-            //Assert.IsTrue(tags1 == tags2); //n�o compila
+            //Assert.IsTrue(tags1 == tags2); //não compila
         }
 
         [TestMethod]
@@ -268,7 +268,7 @@ Criamos testes que falham com certeza, alguns deles nem compilam por isso a part
             Tags tags2 = tags1;
             Assert.AreEqual(tags1, tags2);
             Assert.IsTrue(tags1.Equals(tags2));
-            //Assert.IsTrue(tags1 == tags2); //n�o compila
+            //Assert.IsTrue(tags1 == tags2); //não compila
         }
 
 
@@ -297,6 +297,71 @@ Criamos testes que falham com certeza, alguns deles nem compilam por isso a part
             Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
             Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1);
             Assert.IsTrue(tags1.Equals("tag1,tag2,tag3,tag4,tag5"));
-            //Assert.IsTrue(tags1 == "tag1,tag2,tag3,tag4,tag5"); //n�o compila
+            //Assert.IsTrue(tags1 == "tag1,tag2,tag3,tag4,tag5"); //não compila
         }
 ```
+
+### Iteracao 3
+Os testes que criamos falharam porque não temos override do Equals, nem do GetHashCode, ou do operador == 
+
+Também precisamos dar uma arrumada na casa, está tudo em um arquivo só porque fizemos no replit, mas está na hora de separar o projeto de teste do restante, a Tags para uma biblioteca e Product para uma suposta aplicação. 
+Também estou passando o nome de todas as classes de domínio para o português para fins didáticos, e passando a Tags para uma biblioteca chamada SharpTags para simular uma biblioteca de terceiros (que é a maneira como outros a usariam)
+Criamos a biblioteca SharpTags
+Renomeamos TagStructureTest para SharpTagsTest
+Ficamos com a estrutura:
+```
+TagStructureTest
+ ├─> Dominio
+ │   ├── Dominio.csproj
+ │   └── Produto.cs
+ ├─> SharpTags
+ │   ├── SharpTags.csproj
+ │   └── Tags.cs
+ ├─> TagStructureTest
+ │   ├── TagsTest.cs
+ │   └── TagStructureTest.csproj
+ ├── TagStructureTest.sln
+ ```
+
+ Adicionamos Override do Equals e do GetHashCode, que sempre devem ser implementados juntos. 
+ O Override do GetHashCode eu simplesmente aproveitei que já temos um ToString e uso a hashcode que seria gerada para sua string. Não acredito que precisamos de algo melhor que isso por enquanto.
+ Já o Equals, primeiro ele verifica se dois objetos são o mesmo objeto/instância e retorna true, caso contrário verifica se o objeto sendo comparado é null e retorna false, por último ele vê se as duas strings resultantes são iguais, retornando esse resultado.
+ Não vamos entrar em detalhes sobre o GetHashCode, ele é um algritmo que gera um número inteiro único para um objeto e é usado para otimizar a performance ao armazenar esse objeto em hashes, como listas do tipo HashSet e Dictionary, fazendo com que sejam armazenados como se fosse em um vetor indexado numericamente (usando esse número gerado como índice) para evitar colisões e aumentar a performance em casoss de listas muito grandes. 
+ A regra mais simples é: se dois objetos são iguais então seus hashes devem ser iguais. Se você fez o override de Equals é obrigado a fazer o override de GetHashCode.
+ Se você estivesse trabalhando com entidades aqui para serem persistidas em banco de dados com nHibernate ou EF, você faria o GetHashCode ser o próprio Id, e faria o Equals ser baseado no próprio Id também. 
+
+ - [Definição e Guidelines para implementar Equals](https://learn.microsoft.com/en-us/dotnet/api/system.object.equals?view=net-7.0)
+ - [Implementação correta de GetHashCode](https://learn.microsoft.com/en-us/dotnet/api/system.object.gethashcode?view=net-7.0)
+ - [Usar o Visual Studio para gerar o Equals e o GetHashCode](https://learn.microsoft.com/en-us/visualstudio/ide/reference/generate-equals-gethashcode-methods?view=vs-2022)
+ - [Discussão interessante sobre GetHashCode no Stack Overflow](https://stackoverflow.com/questions/263400/what-is-the-best-algorithm-for-overriding-gethashcode)
+
+ Minha implementação:
+ ```
+         public override int GetHashCode()
+        {
+            return this.ToString().GetHashCode();
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (object.ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj == null)
+            {
+                return false;
+            }
+
+            if ((!(obj is Tags)) && (!(obj is string)))
+            {
+                return false;
+            }
+
+            return this.ToString().Equals(obj.ToString());
+        }
+ ```
+
+ Quase todos passaram exceto os ainda comentados e o teste `Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1);`
+

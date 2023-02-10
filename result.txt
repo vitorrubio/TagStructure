@@ -1,0 +1,11 @@
+TagStructureTest
+ ├─> Dominio
+ │   ├── Dominio.csproj
+ │   └── Produto.cs
+ ├─> SharpTags
+ │   ├── SharpTags.csproj
+ │   └── Tags.cs
+ ├─> TagStructureTest
+ │   ├── TagsTest.cs
+ │   └── TagStructureTest.csproj
+ ├── TagStructureTest.sln

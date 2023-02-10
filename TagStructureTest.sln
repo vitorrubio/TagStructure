@@ -5,6 +5,10 @@ VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagStructureTest", "TagStructureTest\TagStructureTest.csproj", "{FDB97A2E-B0F2-41B7-84D1-AEEADFFAF18F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dominio", "Dominio\Dominio.csproj", "{0E101B1C-2135-4DCD-B645-12CC489AB497}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpTags", "SharpTags\SharpTags.csproj", "{655B82F0-40E1-409B-9CBC-96E72ABF3E08}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{FDB97A2E-B0F2-41B7-84D1-AEEADFFAF18F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDB97A2E-B0F2-41B7-84D1-AEEADFFAF18F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDB97A2E-B0F2-41B7-84D1-AEEADFFAF18F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E101B1C-2135-4DCD-B645-12CC489AB497}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E101B1C-2135-4DCD-B645-12CC489AB497}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E101B1C-2135-4DCD-B645-12CC489AB497}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E101B1C-2135-4DCD-B645-12CC489AB497}.Release|Any CPU.Build.0 = Release|Any CPU
+		{655B82F0-40E1-409B-9CBC-96E72ABF3E08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{655B82F0-40E1-409B-9CBC-96E72ABF3E08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{655B82F0-40E1-409B-9CBC-96E72ABF3E08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{655B82F0-40E1-409B-9CBC-96E72ABF3E08}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
