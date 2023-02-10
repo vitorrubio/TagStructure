@@ -301,7 +301,7 @@ Criamos testes que falham com certeza, alguns deles nem compilam por isso a part
         }
 ```
 
-### Iteracao 3
+### Iteração 3
 Os testes que criamos falharam porque não temos override do Equals, nem do GetHashCode, ou do operador == 
 
 Também precisamos dar uma arrumada na casa, está tudo em um arquivo só porque fizemos no replit, mas está na hora de separar o projeto de teste do restante, a Tags para uma biblioteca e Product para uma suposta aplicação. 
@@ -365,3 +365,86 @@ TagStructureTest
 
  Quase todos passaram exceto os ainda comentados e o teste `Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1);`
 
+
+### Iteração 4
+
+Para iniciar a iteração 4 vamos fazer o operator overloading dos sinais == e !=
+> Operator overloading é um tipo de método que sobrecarrega ou motifica o comportamento de operadores. São úteis para quando precisamos que uma classe ou até uma struct se comporte como um tipo de dado especial até nos momentos em que usamos == ou !=. Por exemplo, nos objetos Produto os operadores == e != só comparam as referências e não o conteúdo. Nós alteraremos esse comportamento em Tags porque queremos que o conteúdo das tags seja considerado. 
+Veja também
+- [Operator Overloading](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/operator-overloading)
+- [Operators](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/classes#1410-operators)
+- [Operator Overloading](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#1143-operator-overloading)
+- [== Operator](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/equality-operators#equality-operator-)
+- [!= Operator](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/equality-operators#inequality-operator-)
+
+Algumas mudanças foram feitas porque estamos tratando de igualdade e override de operators em um Value Type e não em um Reference Type. 
+Isso torna algumas coisas mais simples embora outras precisem de mais cuidados. 
+O trecho de código abaixo podemos tirar:
+```
+            if (object.ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+```
+Com Value Types não precisamos lidar com Reference Equals nem com nulidade.
+
+Os operadores == e != implementados. Veja que o != é facil, porque ele é a negação do ==.
+
+```
+        public static bool operator ==(Tags esquerda, Tags direita)
+        {
+            return esquerda.Equals(direita);
+        }
+
+        public static bool operator !=(Tags esquerda, Tags direita) => !(esquerda == direita);
+```
+
+Agora podemos descomentar as linhas:
+
+```
+Assert.IsTrue(tags1 == tags2);
+```
+
+mas a `Assert.IsTrue(tags1 == "tag1,tag2,tag3,tag4,tag5"); ` ainda não compila, segura ela comentada.
+Podemos colocar esses métodos em outros testes também. 
+O teste TagsShouldBeEqualsToString continua não passando, porque compara com string, ainda não implementamos isso. 
+
+Acrescentei  mais 4 testes:
+```
+        [TestMethod]
+        public void EqualityOperatorSameVarTest()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = tags1;
+            Assert.IsTrue(tags1 == tags2); 
+        }
+
+        [TestMethod]
+        public void EqualityOperatorSameContentsTest()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag5"); 
+            Assert.IsTrue(tags1 == tags2); 
+        }
+
+        [TestMethod]
+        public void InequalityOperatorSameVarTest()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = tags1;
+            tags2.AddTags("Teste");
+            Assert.IsTrue(tags1 != tags2); 
+        }
+
+        [TestMethod]
+        public void IneEqualityOperatorSameContentsTest()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag6");
+            Assert.IsTrue(tags1 != tags2); 
+        }
+```
+
+E não estranhamente o InequalityOperatorSameVarTest não passou. Porque? Porque ambos estão compartilhando a mesma  HashSet<string> _taglist, por referência, que está sendo mudada pelo método AddTags. Podemos mudar esse método para criar uma nova, mas isso fará novamente com que outros testes, principalmente de retorno de funções e getters retornando Tags (como no caso de Produto), falhem.
+
+A solução é transformar a classe em imutável de vez. Isso vai envolver bastante energia por isso deixaremos para a iteração 5.

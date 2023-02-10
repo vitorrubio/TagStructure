@@ -93,10 +93,11 @@
 
         public override bool Equals(object? obj)
         {
-            if (object.ReferenceEquals(this, obj))
-            {
-                return true;
-            }
+            //podemos retirar isso pois sempre é falso
+            //if (object.ReferenceEquals(this, obj))
+            //{
+            //    return true;
+            //}
 
             if (obj == null)
             {
@@ -110,5 +111,14 @@
 
             return this.ToString().Equals(obj.ToString());
         }
+
+
+
+        public static bool operator ==(Tags esquerda, Tags direita)
+        {
+            return esquerda.Equals(direita);
+        }
+
+        public static bool operator !=(Tags esquerda, Tags direita) => !(esquerda == direita);
     }
 }

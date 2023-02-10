@@ -6,13 +6,6 @@ using System.Numerics;
 namespace TagStructureTest
 {
 
-
-
-
-
-
-
-
     [TestClass]
     public class TagsTest
     {
@@ -165,7 +158,7 @@ namespace TagStructureTest
             Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag5");
             Assert.AreEqual(tags1, tags2);
             Assert.IsTrue(tags1.Equals(tags2));
-            //Assert.IsTrue(tags1 == tags2); //não compila
+            Assert.IsTrue(tags1 == tags2); 
         }
 
         [TestMethod]
@@ -175,7 +168,7 @@ namespace TagStructureTest
             Tags tags2 = tags1;
             Assert.AreEqual(tags1, tags2);
             Assert.IsTrue(tags1.Equals(tags2));
-            //Assert.IsTrue(tags1 == tags2); //não compila
+            Assert.IsTrue(tags1 == tags2); 
         }
 
 
@@ -205,6 +198,40 @@ namespace TagStructureTest
             Assert.IsTrue(tags1.Equals("tag1,tag2,tag3,tag4,tag5"));
             Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1);
             //Assert.IsTrue(tags1 == "tag1,tag2,tag3,tag4,tag5"); //não compila
+        }
+
+
+        [TestMethod]
+        public void EqualityOperatorSameVarTest()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = tags1;
+            Assert.IsTrue(tags1 == tags2); 
+        }
+
+        [TestMethod]
+        public void EqualityOperatorSameContentsTest()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag5"); 
+            Assert.IsTrue(tags1 == tags2); 
+        }
+
+        [TestMethod]
+        public void InequalityOperatorSameVarTest()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = tags1;
+            tags2.AddTags("Teste");
+            Assert.IsTrue(tags1 != tags2); 
+        }
+
+        [TestMethod]
+        public void IneEqualityOperatorSameContentsTest()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag6");
+            Assert.IsTrue(tags1 != tags2); 
         }
 
         #endregion
