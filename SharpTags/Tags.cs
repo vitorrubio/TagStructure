@@ -2,7 +2,6 @@
 {
     public struct Tags
     {
-
         private readonly HashSet<string> _taglist = new HashSet<string>();
 
         public Tags()
@@ -10,11 +9,6 @@
         }
 
         public Tags(IEnumerable<string>? tags) : this(tags?.ToArray())
-        {
-
-        }
-
-        public Tags(Tags? tags) : this(tags?.GetTags())
         {
 
         }
@@ -35,17 +29,14 @@
 
         public void AddTags(IEnumerable<string>? t)
         {
-            this.AddTags(t?.ToArray());
-        }
-
-        public void AddTags(Tags? t)
-        {
-            this.AddTags(t?.GetTags());
+            this.Add(t?.ToArray());
         }
 
 
 
-        public void AddTags(params string[]? t)
+
+
+        public void Add(params string[]? t)
         {
             if (t != null && t.Length > 0)
             {
@@ -55,20 +46,17 @@
         }
 
 
-        public void RemoveTags(IEnumerable<string>? t)
+        public void Remove(IEnumerable<string>? t)
         {
-            this.RemoveTags(t?.ToArray());
-        }
-
-
-        public void RemoveTags(Tags? tags)
-        {
-            this.RemoveTags(tags?.GetTags());
+            this.Remove(t?.ToArray());
         }
 
 
 
-        public void RemoveTags(params string[]? t)
+
+
+
+        public void Remove(params string[]? t)
         {
             if (t != null && t.Length > 0)
             {
@@ -93,11 +81,6 @@
 
         public override bool Equals(object? obj)
         {
-            //podemos retirar isso pois sempre é falso
-            //if (object.ReferenceEquals(this, obj))
-            //{
-            //    return true;
-            //}
 
             if (obj == null)
             {
@@ -120,5 +103,10 @@
         }
 
         public static bool operator !=(Tags esquerda, Tags direita) => !(esquerda == direita);
+
+
+        public static implicit operator string(Tags t) => t.ToString();
+
+        public static implicit operator Tags(string s) => new Tags(s);
     }
 }

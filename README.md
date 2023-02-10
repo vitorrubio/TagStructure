@@ -448,3 +448,117 @@ Acrescentei  mais 4 testes:
 E não estranhamente o InequalityOperatorSameVarTest não passou. Porque? Porque ambos estão compartilhando a mesma  HashSet<string> _taglist, por referência, que está sendo mudada pelo método AddTags. Podemos mudar esse método para criar uma nova, mas isso fará novamente com que outros testes, principalmente de retorno de funções e getters retornando Tags (como no caso de Produto), falhem.
 
 A solução é transformar a classe em imutável de vez. Isso vai envolver bastante energia por isso deixaremos para a iteração 5.
+
+
+### Iteração 5
+Adicionei overlod para os operadores de conversão implícita string => tags e tags => string.
+
+```
+        public static implicit operator string(Tags t) => t.ToString();
+
+        public static implicit operator Tags(string s) => new Tags(s);
+```
+E Deu pau boniiiiito.
+> Muito cuidado ao brincar com overload de operadores.
+
+Primeiro de tudo, o que são conversões implícitas? São conversões sem perda de dados, de tipos compatíveis, que podem ser feitas diretamente sem colocar o tipo na frente. 
+Por exemplo:
+```
+byte a = 5;
+int b = a;
+```
+Essa é uma conversão implícita. Você pode jogar um byte em um int, porque ele cabe, e ele também é um "tipo do mesmo tipo". Ele é um número inteiro. Só que menor. Ele pode ser convertido direto, é o mesmo tipo de dado. 
+Tá, mas e uma conversão explícita? É o tipo de conversão que você tem que forçar com o nome do outro tipo na frente, porque os tipos são quase incompatíveis, ou compatíveis até certo ponto, e você vai perder dados. Por exemplo na conversão abaixo:
+```
+double a = 5.5;
+int b = (int)a;
+```
+Nessa conversão eu tenho que forçar o tipo double a "caber" no int e pra isso eu perco informação, eu perco o .5.
+
+
+No nosso caso, eu quero que Tags seja conversível para string. Assim de uma forma que se eu jogar uma string em uma tag ele crie a tag automaticamente sem dar new, e se eu jogar uma tag em uma string ele converta automaticamente sem eu ter que chamar o .ToString().
+
+Muito ousado? 
+
+O que eu quero é fazer isso ser legal e compilável:
+
+```
+Tags a = "vitor,teste";
+string b = a;
+```
+
+E porque está dando vários erros do tipo 
+> Error	CS0121	The call is ambiguous between the following methods or properties: 'Tags.RemoveTags(Tags?)' and 'Tags.RemoveTags(params string[]?)'	TagStructureTest	C:\Users\vitor\OneDrive\Desktop\Labs\TagStructureTest\TagStructureTest\TagsTest.cs	32	N/A
+
+Onde está a ambiguidade? Em todos os métodos que eu aceito Tags como parâmetro de entrada mas que também tem um overload que aceite string está dando ambiguidade. Por quê? Porque o compilador não sabe se `RemoveTags(new Tags("tag5"));`é pra chamar o RemoveTags de string ou o RemoveTags de Tags convertento pra string .... já que agora Tags é legalmente conversível pra string ... 
+
+Complicado? Muito. 
+
+Vamos retirar todos os métodos que aceitam Tags como argumento, e seus testes. Vamos também renomear AddTags para Add e RemoveTags para Remove.
+
+Magicamente removendo esses métodos ele compila, e agora temos menos métodos para dar manutenção, testar e documentar.
+
+Rodamos os testes e todos os testes rodaram exceto o `InequalityOperatorSameVarTest`, que já esperávamos, pois Tags ainda não é imutável, e o teste
+```
+        [TestMethod]
+        public void TagsShouldBeEqualsToString()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.IsTrue(tags1.Equals("tag1,tag2,tag3,tag4,tag5"));
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1);
+            //Assert.IsTrue(tags1 == "tag1,tag2,tag3,tag4,tag5"); //não compila
+        }
+```
+Falha na linha `Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1);`
+
+Estrano isso, mas vamos descomentar  linha Assert.IsTrue(tags1 == "tag1,tag2,tag3,tag4,tag5") e ver se ela passa, vamos também olhar a documentação do Assert.AreEqual e debugar. Vamos também dividir isso aí em 3 testes.
+
+```
+        [TestMethod]
+        public void TagsShouldBeEqualsToString()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.IsTrue(tags1.Equals("tag1,tag2,tag3,tag4,tag5"));
+        }
+
+        [TestMethod]
+        public void TagsShouldBeEqualsToStringUsingEqualityOperators()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.IsTrue(tags1 == "tag1,tag2,tag3,tag4,tag5"); 
+        }
+
+        [TestMethod]
+        public void ATagsVarShouldBeEqualsToASameContentString()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1);
+        }
+```
+
+Compila e `Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1);` continua falhando. 
+
+Inspecionando o método Assert.AreEqual encontramos a resposta:
+```
+        //
+        // Summary:
+        //     Tests whether the specified objects are equal and throws an exception if the
+        //     two objects are not equal. *Different numeric types are treated as unequal even
+        //     if the logical values are equal. 42L is not equal to 42.*
+        //
+        // Parameters:
+        //   expected:
+        //     The first object to compare. This is the object the tests expects.
+        //
+        //   actual:
+        //     The second object to compare. This is the object produced by the code under test.
+        //
+        // Exceptions:
+        //   T:Microsoft.VisualStudio.TestTools.UnitTesting.AssertFailedException:
+        //     Thrown if expected is not equal to actual.
+        public static void AreEqual(object expected, object actual)
+```
+Ou seja, Assert.AreEqual considera o mesmo tipo e mesmo valor. Ele falha pra um int e um byte por exemplo. Isso está na documentação.
+- [Método Assert.AreEqual](https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.testtools.unittesting.assert.areequal?redirectedfrom=MSDN&view=visualstudiosdk-2022#overloads)
+
+Então vamos trocar essa linha para  `Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1.ToString());` porque nós queremos ver se o valor das duas strings geradas é o mesmo. 

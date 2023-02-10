@@ -17,8 +17,8 @@ namespace TagStructureTest
         {
 
             Tags tags = new Tags();
-            tags.AddTags("tag1, tag2, tag3");
-            tags.AddTags("tag4, tag5, tag3");
+            tags.Add("tag1, tag2, tag3");
+            tags.Add("tag4, tag5, tag3");
             Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
         }
 
@@ -28,8 +28,8 @@ namespace TagStructureTest
         {
 
             Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
-            tags.RemoveTags("tag1");
-            tags.RemoveTags(new Tags("tag5"));
+            tags.Remove("tag1");
+            tags.Remove(new Tags("tag5"));
             Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
 
 
@@ -42,8 +42,8 @@ namespace TagStructureTest
 
 
             Produto prod = new Produto();
-            prod.Tags.AddTags("tag1, tag2, tag3");
-            prod.Tags.AddTags("tag4, tag5, tag3");
+            prod.Tags.Add("tag1, tag2, tag3");
+            prod.Tags.Add("tag4, tag5, tag3");
             Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", prod.Tags.ToString());
 
 
@@ -56,9 +56,9 @@ namespace TagStructureTest
         {
 
             Produto prod = new Produto();
-            prod.Tags.AddTags("tag1,tag2,tag3,tag4,tag5");
-            prod.Tags.RemoveTags("tag1");
-            prod.Tags.RemoveTags(new Tags("tag5"));
+            prod.Tags.Add("tag1,tag2,tag3,tag4,tag5");
+            prod.Tags.Remove("tag1");
+            prod.Tags.Remove(new Tags("tag5"));
             Assert.AreEqual("tag2,tag3,tag4", prod.Tags.ToString());
 
 
@@ -80,7 +80,7 @@ namespace TagStructureTest
         public void CanCreateTagsFromString()
         {
             Tags tags = new Tags("tag1, tag2, tag3");
-            tags.AddTags("tag4, tag5, tag3");
+            tags.Add("tag4, tag5, tag3");
             Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
         }
 
@@ -88,8 +88,8 @@ namespace TagStructureTest
         public void CanCreateTagsFromTags()
         {
             Tags tags = new Tags();
-            tags.AddTags(new Tags("tag1, tag2, tag3"));
-            tags.AddTags(new Tags("tag4, tag5, tag3"));
+            tags.Add(new Tags("tag1, tag2, tag3"));
+            tags.Add(new Tags("tag4, tag5, tag3"));
             Tags newTags = new Tags(tags);
             Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", newTags.ToString());
         }
@@ -107,8 +107,8 @@ namespace TagStructureTest
         public void CanAddTagsFromString()
         {
             Tags tags = new Tags();
-            tags.AddTags("tag1, tag2, tag3");
-            tags.AddTags("tag4, tag5, tag3");
+            tags.Add("tag1, tag2, tag3");
+            tags.Add("tag4, tag5, tag3");
             Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
         }
 
@@ -116,8 +116,8 @@ namespace TagStructureTest
         public void CanAddTagsFromTags()
         {
             Tags tags = new Tags();
-            tags.AddTags(new Tags("tag1, tag2, tag3"));
-            tags.AddTags(new Tags("tag4, tag5, tag3"));
+            tags.Add(new Tags("tag1, tag2, tag3"));
+            tags.Add(new Tags("tag4, tag5, tag3"));
             Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
         }
 
@@ -126,7 +126,7 @@ namespace TagStructureTest
         public void CanRemoveTagsFromList()
         {
             Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
-            tags.RemoveTags(new List<string> { "tag1", "tag5"});
+            tags.Remove(new List<string> { "tag1", "tag5"});
             Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
         }
 
@@ -134,7 +134,7 @@ namespace TagStructureTest
         public void CanRemoveTagsFromString()
         {
             Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
-            tags.RemoveTags("tag1, tag5");
+            tags.Remove("tag1, tag5");
             Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
         }
 
@@ -142,7 +142,7 @@ namespace TagStructureTest
         public void CanRemoveTagsFromTags()
         {
             Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
-            tags.RemoveTags(new Tags("tag1, tag5"));
+            tags.Remove(new Tags("tag1, tag5"));
             Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
         }
 
@@ -196,8 +196,20 @@ namespace TagStructureTest
         {
             Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
             Assert.IsTrue(tags1.Equals("tag1,tag2,tag3,tag4,tag5"));
-            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1);
-            //Assert.IsTrue(tags1 == "tag1,tag2,tag3,tag4,tag5"); //não compila
+        }
+
+        [TestMethod]
+        public void TagsShouldBeEqualsToStringUsingEqualityOperators()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.IsTrue(tags1 == "tag1,tag2,tag3,tag4,tag5"); 
+        }
+
+        [TestMethod]
+        public void ATagsVarShouldBeEqualsToASameContentString()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1.ToString());
         }
 
 
@@ -222,7 +234,7 @@ namespace TagStructureTest
         {
             Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
             Tags tags2 = tags1;
-            tags2.AddTags("Teste");
+            tags2.Add("Teste");
             Assert.IsTrue(tags1 != tags2); 
         }
 
