@@ -562,3 +562,6 @@ Ou seja, Assert.AreEqual considera o mesmo tipo e mesmo valor. Ele falha pra um 
 - [Método Assert.AreEqual](https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.testtools.unittesting.assert.areequal?redirectedfrom=MSDN&view=visualstudiosdk-2022#overloads)
 
 Então vamos trocar essa linha para  `Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1.ToString());` porque nós queremos ver se o valor das duas strings geradas é o mesmo. 
+
+Funcionou. Agora vamos para a iteração 6 onde deixamos isso tudo verdadeiramente imutável. 
+
