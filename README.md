@@ -156,13 +156,19 @@ namespace TagStructureTest
 ## Change Log
 
 ### Iteração 1
+
 Mudamos a List<string> interna para um HashSet<string> porque o hashset já garante a unicidade das tags. Fizemos a renomeação de algumas vairáveis, e mais 9 testes. 3 de criação, 3 de add e 3 de remove.
 Deixamos a HashSet<string> como readonly, para não mudarmos sua instância, mas mesmo assim ela (e todo o restante), é mutável. 
 Deixamos a ordenação só para a saída ToString. 
 Já podemos criar Tags a partir de strings usando um dos constructores ou convertê-las para strings, mas ainda não podemos simplesmente atribuir um objeto tags a uma string, ou uma string ao Tags. Também não temos o que é recomendável pela microsoft: Override de Equals, GetHashCode, etc.
 Igualdade entre tags com o mesmo conteúdo, como se fossem um record, Equal(), GetHashCode(), ==, nada disso está funcionando.
 
-Todos os testes abaixo passam
+
+
+### Iteração 2
+
+Adicionamos mais esses testes ao que foi feito na iteração 1 e todos passaram:
+
 ```
         [TestMethod]
         public void CanCreateTagsFromList()
@@ -242,8 +248,6 @@ Todos os testes abaixo passam
             Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
         }
 ```
-
-### Iteração 2
 
 Criamos testes que falham com certeza, alguns deles nem compilam por isso a parte que não compila está comentada para vermos os outros falharem:
 ```
