@@ -251,4 +251,52 @@ Adicionamos mais esses testes ao que foi feito na iteração 1 e todos passaram:
 
 Criamos testes que falham com certeza, alguns deles nem compilam por isso a parte que não compila está comentada para vermos os outros falharem:
 ```
+        [TestMethod]
+        public void TagsWithSameContentsShouldBeEquals()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.AreEqual(tags1, tags2);
+            Assert.IsTrue(tags1.Equals(tags2));
+            //Assert.IsTrue(tags1 == tags2); //não compila
+        }
+
+        [TestMethod]
+        public void SameTagsShouldBeEquals()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = tags1;
+            Assert.AreEqual(tags1, tags2);
+            Assert.IsTrue(tags1.Equals(tags2));
+            //Assert.IsTrue(tags1 == tags2); //não compila
+        }
+
+
+
+        [TestMethod]
+        public void TagsWithSameContentsShouldHaveSameHashcodeEquals()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.AreEqual(tags1.GetHashCode(), tags2.GetHashCode());
+
+        }
+
+        [TestMethod]
+        public void SameTagsShouldHaveSameHashcodeEquals()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = tags1;
+            Assert.AreEqual(tags1.GetHashCode(), tags2.GetHashCode());
+        }
+
+
+        [TestMethod]
+        public void TagsShouldBeEqualsToString()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1);
+            Assert.IsTrue(tags1.Equals("tag1,tag2,tag3,tag4,tag5"));
+            //Assert.IsTrue(tags1 == "tag1,tag2,tag3,tag4,tag5"); //não compila
+        }
 ```
