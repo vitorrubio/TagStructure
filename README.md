@@ -155,6 +155,8 @@ namespace TagStructureTest
 
 ## Change Log
 
+### Iteração 1
+
 Mudamos a List<string> interna para um HashSet<string> porque o hashset já garante a unicidade das tags. Fizemos a renomeação de algumas vairáveis, e mais 9 testes. 3 de criação, 3 de add e 3 de remove.
 Deixamos a HashSet<string> como readonly, para não mudarmos sua instância, mas mesmo assim ela (e todo o restante), é mutável. 
 Deixamos a ordenação só para a saída ToString. 
