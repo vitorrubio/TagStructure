@@ -6,11 +6,6 @@ namespace TagStructureTest
 
     public struct Tags
     {
-        //errado (segundo erro: melhor que os membros de uma struct sejam readonly/imutáveis)
-        //private List<string> _taglist = new List<string>();
-
-        //certo 
-        //private readonly List<string> _taglist = new List<string>();
 
         //melhor ainda: troque por hashset
         private readonly HashSet<string> _taglist = new HashSet<string>();
@@ -62,17 +57,6 @@ namespace TagStructureTest
             //para segurança, invariantes etc
             if (t != null && t.Length > 0)
             {
-
-                ////errado (terceiro erro: não mude / troque as referencias dos reference types internos (não crie / nobrescreva novos objetos com new / tolist etc)
-                //var tagsToAdd = t.Where(x => !string.IsNullOrWhiteSpace(x)).SelectMany(x => x!.Split(",")).Select(x => x.Trim().ToLower()).Distinct().ToList();
-                //this._taglist = this._taglist.Union(tagsToAdd).Select(x => x.Trim().ToLower()).OrderBy(x => x).Distinct().ToList();
-
-                ////correção
-                //var current = _taglist.ToArray();
-                //var tagsToAdd = t.Where(x => !string.IsNullOrWhiteSpace(x)).SelectMany(x => x!.Split(",")).Select(x => x.Trim().ToLower()).Distinct().ToArray();
-                //_taglist.Clear();
-                //_taglist.AddRange(current.Union(tagsToAdd).Select(x => x.Trim().ToLower()).Distinct().ToList());
-
                 //melhor: use hashset que ele garante que só existe um de cada e faz a operação mudando o proprio hashset com UnionWith
                 var tagsToAdd = t.Where(x => !string.IsNullOrWhiteSpace(x)).SelectMany(x => x!.Split(",")).Select(x => x.Trim().ToLower());
                 _taglist.UnionWith(tagsToAdd);
@@ -101,15 +85,7 @@ namespace TagStructureTest
             //para segurança, invariantes etc
             if (t != null && t.Length > 0)
             {
-                ////errado  (terceiro erro: não mude / troque as referencias dos reference types internos (não crie / nobrescreva novos objetos com new / tolist etc)
-                //var tagsToRemove = t.Where(x => !string.IsNullOrWhiteSpace(x)).SelectMany(x => x!.Split(",")).Select(x => x.Trim().ToLower()).Distinct();
-                //_taglist = _taglist.Except(tagsToRemove).Select(x => x.Trim().ToLower()).OrderBy(x => x).Distinct().ToList();
-
-                ////correção
-                //var tagsToRemove = t.Where(x => !string.IsNullOrWhiteSpace(x)).SelectMany(x => x!.Split(",")).Select(x => x.Trim().ToLower()).Distinct();
-                //_taglist.RemoveAll(x => tagsToRemove.Contains(x));
-
-                //melhor ainda: use hashset e subtraia as tags com ExceptWith
+                //melhor: use hashset e subtraia as tags com ExceptWith
                 var tagsToRemove = t.Where(x => !string.IsNullOrWhiteSpace(x)).SelectMany(x => x!.Split(",")).Select(x => x.Trim().ToLower());
                 _taglist.ExceptWith(tagsToRemove);
 
@@ -162,6 +138,9 @@ namespace TagStructureTest
     [TestClass]
     public class TagsTest
     {
+
+        #region testes básicos passando na iteração1
+
         [TestMethod]
         public void TagsMustHaveCombinationOfUniqueTags()
         {
@@ -214,6 +193,143 @@ namespace TagStructureTest
 
         }
 
+        #endregion
+
+
+        #region testes novos criados na iteracao 1 (constructor, add, remove)
+        [TestMethod]
+        public void CanCreateTagsFromList()
+        {
+            Tags tags = new Tags(new List<string> { "tag1", "tag2", "tag3" });
+            tags.AddTags(new List<string> { "tag4", "tag5", "tag3" });
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanCreateTagsFromString()
+        {
+            Tags tags = new Tags("tag1, tag2, tag3");
+            tags.AddTags("tag4, tag5, tag3");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanCreateTagsFromTags()
+        {
+            Tags tags = new Tags();
+            tags.AddTags(new Tags("tag1, tag2, tag3"));
+            tags.AddTags(new Tags("tag4, tag5, tag3"));
+            Tags newTags = new Tags(tags);
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", newTags.ToString());
+        }
+
+        [TestMethod]
+        public void CanAddTagsFromList()
+        {
+            Tags tags = new Tags();
+            tags.AddTags(new List<string> { "tag1", "tag2", "tag3" });
+            tags.AddTags(new List<string> { "tag4", "tag5", "tag3" });
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanAddTagsFromString()
+        {
+            Tags tags = new Tags();
+            tags.AddTags("tag1, tag2, tag3");
+            tags.AddTags("tag4, tag5, tag3");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanAddTagsFromTags()
+        {
+            Tags tags = new Tags();
+            tags.AddTags(new Tags("tag1, tag2, tag3"));
+            tags.AddTags(new Tags("tag4, tag5, tag3"));
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+
+        [TestMethod]
+        public void CanRemoveTagsFromList()
+        {
+            Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
+            tags.RemoveTags(new List<string> { "tag1", "tag5"});
+            Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanRemoveTagsFromString()
+        {
+            Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
+            tags.RemoveTags("tag1, tag5");
+            Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanRemoveTagsFromTags()
+        {
+            Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
+            tags.RemoveTags(new Tags("tag1, tag5"));
+            Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
+        }
+
+        #endregion
+
+
+        #region testes de igualdade 
+
+        [TestMethod]
+        public void TagsWithSameContentsShouldBeEquals()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.AreEqual(tags1, tags2);
+            Assert.IsTrue(tags1.Equals(tags2));
+            //Assert.IsTrue(tags1 == tags2); //não compila
+        }
+
+        [TestMethod]
+        public void SameTagsShouldBeEquals()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = tags1;
+            Assert.AreEqual(tags1, tags2);
+            Assert.IsTrue(tags1.Equals(tags2));
+            //Assert.IsTrue(tags1 == tags2); //não compila
+        }
+
+
+
+        [TestMethod]
+        public void TagsWithSameContentsShouldHaveSameHashcodeEquals()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.AreEqual(tags1.GetHashCode(), tags2.GetHashCode());
+
+        }
+
+        [TestMethod]
+        public void SameTagsShouldHaveSameHashcodeEquals()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = tags1;
+            Assert.AreEqual(tags1.GetHashCode(), tags2.GetHashCode());
+        }
+
+
+        [TestMethod]
+        public void TagsShouldBeEqualsToString()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1);
+            Assert.IsTrue(tags1.Equals("tag1,tag2,tag3,tag4,tag5"));
+            //Assert.IsTrue(tags1 == "tag1,tag2,tag3,tag4,tag5"); //não compila
+        }
+
+        #endregion
 
     }
 }

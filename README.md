@@ -154,3 +154,97 @@ namespace TagStructureTest
 
 
 ## Change Log
+
+### Iteração 1
+Mudamos a List<string> interna para um HashSet<string> porque o hashset já garante a unicidade das tags. Fizemos a renomeação de algumas vairáveis, e mais 9 testes. 3 de criação, 3 de add e 3 de remove.
+Deixamos a HashSet<string> como readonly, para não mudarmos sua instância, mas mesmo assim ela (e todo o restante), é mutável. 
+Deixamos a ordenação só para a saída ToString. 
+Já podemos criar Tags a partir de strings usando um dos constructores ou convertê-las para strings, mas ainda não podemos simplesmente atribuir um objeto tags a uma string, ou uma string ao Tags. Também não temos o que é recomendável pela microsoft: Override de Equals, GetHashCode, etc.
+Igualdade entre tags com o mesmo conteúdo, como se fossem um record, Equal(), GetHashCode(), ==, nada disso está funcionando.
+
+Todos os testes abaixo passam
+```
+        [TestMethod]
+        public void CanCreateTagsFromList()
+        {
+            Tags tags = new Tags(new List<string> { "tag1", "tag2", "tag3" });
+            tags.AddTags(new List<string> { "tag4", "tag5", "tag3" });
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanCreateTagsFromString()
+        {
+            Tags tags = new Tags("tag1, tag2, tag3");
+            tags.AddTags("tag4, tag5, tag3");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanCreateTagsFromTags()
+        {
+            Tags tags = new Tags();
+            tags.AddTags(new Tags("tag1, tag2, tag3"));
+            tags.AddTags(new Tags("tag4, tag5, tag3"));
+            Tags newTags = new Tags(tags);
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", newTags.ToString());
+        }
+
+        [TestMethod]
+        public void CanAddTagsFromList()
+        {
+            Tags tags = new Tags();
+            tags.AddTags(new List<string> { "tag1", "tag2", "tag3" });
+            tags.AddTags(new List<string> { "tag4", "tag5", "tag3" });
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanAddTagsFromString()
+        {
+            Tags tags = new Tags();
+            tags.AddTags("tag1, tag2, tag3");
+            tags.AddTags("tag4, tag5, tag3");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanAddTagsFromTags()
+        {
+            Tags tags = new Tags();
+            tags.AddTags(new Tags("tag1, tag2, tag3"));
+            tags.AddTags(new Tags("tag4, tag5, tag3"));
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+
+        [TestMethod]
+        public void CanRemoveTagsFromList()
+        {
+            Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
+            tags.RemoveTags(new List<string> { "tag1", "tag5"});
+            Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanRemoveTagsFromString()
+        {
+            Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
+            tags.RemoveTags("tag1, tag5");
+            Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanRemoveTagsFromTags()
+        {
+            Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
+            tags.RemoveTags(new Tags("tag1, tag5"));
+            Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
+        }
+```
+
+### Iteração 2
+
+Criamos testes que falham com certeza, alguns deles nem compilam por isso a parte que não compila está comentada para vermos os outros falharem:
+```
+```
