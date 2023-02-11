@@ -1,5 +1,6 @@
 ﻿# Struct para gerenciar Tags no C#
 
+## Objetivo
 Ontem eu tentei fazer um tipo no C# para servir como tags para os produtos / serviços da minha empresa, e que pudesse ser usada em qualquer classe que precisasse te tags e que pudesse ser lido/gravado no banco de dados usando EF como se fosse uma string normal.
 Queria que atendesse aos seguintes requisitos:
 1. mantivesse uma lista de strings únicas e em minúscula
@@ -10,9 +11,19 @@ Queria que atendesse aos seguintes requisitos:
 6. Fosse no meu domínio um value object
 7. Fosse compatível com o EF
 
+
+## Disclaimers
+
 Um disclaimer aqui: essa classe não vai contar as tags para medir relevância ou fazer tag cloud. 
 
+Não use esse código em um projeto em produção (pelo menos não ainda, não em um grande)
+
 Quero deixar claro que meu primeiro código está muito longe de estar correto, na verdade está um lixo, não o use. Tem várias coisas absolutamente erradas e é um bom exemplo de como mesmo devs experientes podem cometer grandes erros em coisas simples. 
+
+
+---
+
+## História
 
 O meu primeiro código eu fiz a classe Product, a struct Tags (gostaria de insistir em struct por enquanto) e 4 testes unitários. 
 Dois testes falharam e dois passaram, e eu fiquei intrigado com o motivo que levou dois deles a falharem e propus o desafio ontem no [replit](https://replit.com/)
@@ -565,3 +576,392 @@ Então vamos trocar essa linha para  `Assert.AreEqual("tag1,tag2,tag3,tag4,tag5"
 
 Funcionou. Agora vamos para a iteração 6 onde deixamos isso tudo verdadeiramente imutável. 
 
+
+### Iteração 6
+
+Lembrando que cada interação minha é um ajuste ou refactoring para fazer funcionar um dos testes (e as vezes testes adicionais) e que eu estou colocando cada uma em uma branch. 
+Eu não colocaria cada um em uma branch num projeto da vida real mas com certeza teria um commit bem explicado para cada um. 
+Vamos começar fazendo o seguinte: Mudar o HashSet<string> pra um ImmutableHashSet<string>. Isso faz com que não possamos mais usar os métodos UnionWith e ExceptWith. Então teriamos que criar novos em vez de mudar seu conteúdo. Mas lemre-se que não devemos criar novos reference types dentro de um field de um calue type. 
+Então teremos que fazer com que os métodos Add e Remove retornem um novo Tags com seu conteúdo já preparado (o resultado da fusão dos hashsets). E teremos que mudar a classe Produto também. 
+Muita coisa terá que mudar. 
+O parameterless constructor (construtor padrão) tem que criar um ImmutableHashSet<string> vazio. O construtor que aceita params string[] deve criar um ImmutableHashSet<string> com essas strings ou vazio. 
+Os métodos add e remove devem aproveitar o método new pra criar um novo. O jeito de criar um ImmutableHashSet<string> é meio diferente, você verá. 
+
+Todos os tags.Add e tags.Remove tiveram que mudar para tags = tags.Add e tags = tags.Remove.
+
+```
+using System.Collections.Immutable;
+
+namespace SharpTags
+{
+    public struct Tags
+    {
+        private readonly ImmutableHashSet<string> _taglist;
+
+        public Tags() : this(null)
+        {
+
+        }
+
+        public Tags(IEnumerable<string>? t) : this(t?.ToArray())
+        {
+           
+        }
+
+        public Tags(params string[]? t)
+        {
+            if (t != null && t.Count() > 0)
+            {
+                var tagsToAdd = t.Where(x => !string.IsNullOrWhiteSpace(x)).SelectMany(x => x!.Split(",")).Select(x => x.Trim().ToLower()).ToArray();
+                _taglist = ImmutableHashSet.Create<string>(tagsToAdd);
+            }
+            else
+            {
+                _taglist = ImmutableHashSet.Create<string>();
+            }
+        }
+
+        public override string ToString()
+        {
+            return string.Join(",", _taglist.Select(x => x.Trim().ToLower()).OrderBy(x => x).Distinct());
+        }
+
+
+        public Tags Add(IEnumerable<string>? t)
+        {
+            return this.Add(t?.ToArray());
+        }
+
+        public Tags Add(params string[]? t)
+        {
+            if (t != null && t.Length > 0)
+            {
+                var tagsToAdd = t.Where(x => !string.IsNullOrWhiteSpace(x)).SelectMany(x => x!.Split(",")).Select(x => x.Trim().ToLower());
+                return new Tags(_taglist.Union(tagsToAdd));
+            }
+
+            return new Tags(_taglist);
+        }
+
+
+        public Tags Remove(IEnumerable<string>? t)
+        {
+            return this.Remove(t?.ToArray());
+        }
+
+
+
+
+
+
+        public Tags Remove(params string[]? t)
+        {
+            if (t != null && t.Length > 0)
+            {
+                var tagsToRemove = t.Where(x => !string.IsNullOrWhiteSpace(x)).SelectMany(x => x!.Split(",")).Select(x => x.Trim().ToLower());
+                return new Tags(_taglist.Except(tagsToRemove));
+            }
+            return new Tags(_taglist);
+        }
+
+
+        public string[] GetTags()
+        {
+            return this._taglist.Select(x => x.Trim().ToLower()).OrderBy(x => x).Distinct().ToArray();
+        }
+
+
+        public override int GetHashCode()
+        {
+            return this.ToString().GetHashCode();
+        }
+
+        public override bool Equals(object? obj)
+        {
+
+            if (obj == null)
+            {
+                return false;
+            }
+
+            if ((!(obj is Tags)) && (!(obj is string)))
+            {
+                return false;
+            }
+
+            return this.ToString().Equals(obj.ToString());
+        }
+
+
+
+        public static bool operator ==(Tags esquerda, Tags direita)
+        {
+            return esquerda.Equals(direita);
+        }
+
+        public static bool operator !=(Tags esquerda, Tags direita) => !(esquerda == direita);
+
+
+        public static implicit operator string(Tags t) => t.ToString();
+
+        public static implicit operator Tags(string s) => new Tags(s);
+    }
+}
+```
+
+Alteramos e rodamos os testes e funcionou
+
+```
+using Dominio;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SharpTags;
+using System.Numerics;
+
+namespace TagStructureTest
+{
+
+    [TestClass]
+    public class TagsTest
+    {
+
+        #region testes básicos passando na iteração1
+
+        [TestMethod]
+        public void TagsMustHaveCombinationOfUniqueTags()
+        {
+
+            Tags tags = new Tags();
+            tags = tags.Add("tag1, tag2, tag3");
+            tags = tags.Add("tag4, tag5, tag3");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanRemoveTags()
+        {
+
+            Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
+            tags = tags.Remove("tag1");
+            tags = tags.Remove(new Tags("tag5"));
+            Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
+        }
+
+
+        [TestMethod]
+        public void ProductMustHaveCombinationOfUniqueTags()
+        {
+
+
+            Produto prod = new Produto();
+            prod.Tags = prod.Tags.Add("tag1, tag2, tag3");
+            prod.Tags = prod.Tags.Add("tag4, tag5, tag3");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", prod.Tags.ToString());
+        }
+
+
+        [TestMethod]
+        public void CanRemoveTagsFromProduct()
+        {
+
+            Produto prod = new Produto();
+            prod.Tags = prod.Tags.Add("tag1,tag2,tag3,tag4,tag5");
+            prod.Tags = prod.Tags.Remove("tag1");
+            prod.Tags = prod.Tags.Remove(new Tags("tag5"));
+            Assert.AreEqual("tag2,tag3,tag4", prod.Tags.ToString());
+        }
+
+        #endregion
+
+
+        #region testes novos criados na iteracao 1 (constructor, add, remove)
+        [TestMethod]
+        public void CanCreateTagsFromList()
+        {
+            Tags tags = new Tags(new List<string> { "tag1", "tag2", "tag3" });
+            tags = tags.Add(new List<string> { "tag4", "tag5", "tag3" });
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanCreateTagsFromString()
+        {
+            Tags tags = new Tags("tag1, tag2, tag3");
+            tags = tags.Add("tag4, tag5, tag3");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanCreateTagsFromTags()
+        {
+            Tags tags = new Tags();
+            tags = tags.Add(new Tags("tag1, tag2, tag3"));
+            tags = tags.Add(new Tags("tag4, tag5, tag3"));
+            Tags newTags = new Tags(tags);
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", newTags.ToString());
+        }
+
+        [TestMethod]
+        public void CanAddTagsFromList()
+        {
+            Tags tags = new Tags();
+            tags = tags.Add(new List<string> { "tag1", "tag2", "tag3" });
+            tags = tags.Add(new List<string> { "tag4", "tag5", "tag3" });
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanAddTagsFromString()
+        {
+            Tags tags = new Tags();
+            tags = tags.Add("tag1, tag2, tag3");
+            tags = tags.Add("tag4, tag5, tag3");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanAddTagsFromTags()
+        {
+            Tags tags = new Tags();
+            tags = tags.Add(new Tags("tag1, tag2, tag3"));
+            tags = tags.Add(new Tags("tag4, tag5, tag3"));
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags.ToString());
+        }
+
+
+        [TestMethod]
+        public void CanRemoveTagsFromList()
+        {
+            Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
+            tags = tags.Remove(new List<string> { "tag1", "tag5"});
+            Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanRemoveTagsFromString()
+        {
+            Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
+            tags = tags.Remove("tag1, tag5");
+            Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
+        }
+
+        [TestMethod]
+        public void CanRemoveTagsFromTags()
+        {
+            Tags tags = new Tags("tag1,tag2,tag3,tag4,tag5");
+            tags = tags.Remove(new Tags("tag1, tag5"));
+            Assert.AreEqual("tag2,tag3,tag4", tags.ToString());
+        }
+
+        #endregion
+
+
+        #region testes de igualdade 
+
+        [TestMethod]
+        public void TagsWithSameContentsShouldBeEquals()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.AreEqual(tags1, tags2);
+            Assert.IsTrue(tags1.Equals(tags2));
+            Assert.IsTrue(tags1 == tags2); 
+        }
+
+        [TestMethod]
+        public void SameTagsShouldBeEquals()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = tags1;
+            Assert.AreEqual(tags1, tags2);
+            Assert.IsTrue(tags1.Equals(tags2));
+            Assert.IsTrue(tags1 == tags2); 
+        }
+
+
+
+        [TestMethod]
+        public void TagsWithSameContentsShouldHaveSameHashcode()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.AreEqual(tags1.GetHashCode(), tags2.GetHashCode());
+
+        }
+
+        [TestMethod]
+        public void SameTagsShouldHaveSameHashcode()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = tags1;
+            Assert.AreEqual(tags1.GetHashCode(), tags2.GetHashCode());
+        }
+
+
+        [TestMethod]
+        public void TagsShouldBeEqualsToString()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.IsTrue(tags1.Equals("tag1,tag2,tag3,tag4,tag5"));
+        }
+
+        [TestMethod]
+        public void TagsShouldBeEqualsToStringUsingEqualityOperators()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.IsTrue(tags1 == "tag1,tag2,tag3,tag4,tag5"); 
+        }
+
+        [TestMethod]
+        public void ATagsVarShouldBeEqualsToASameContentString()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Assert.AreEqual("tag1,tag2,tag3,tag4,tag5", tags1.ToString());
+        }
+
+
+        [TestMethod]
+        public void EqualityOperatorSameVarTest()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = tags1;
+            Assert.IsTrue(tags1 == tags2); 
+        }
+
+        [TestMethod]
+        public void EqualityOperatorSameContentsTest()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag5"); 
+            Assert.IsTrue(tags1 == tags2); 
+        }
+
+        [TestMethod]
+        public void InequalityOperatorSameVarTest()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = tags1;
+            tags1 = tags2.Add("Teste");
+            Assert.IsTrue(tags1 != tags2); 
+        }
+
+        [TestMethod]
+        public void IneEqualityOperatorSameContentsTest()
+        {
+            Tags tags1 = new Tags("tag1,tag2,tag3,tag4,tag5");
+            Tags tags2 = new Tags("tag1,tag2,tag3,tag4,tag6");
+            Assert.IsTrue(tags1 != tags2); 
+        }
+
+        #endregion
+
+    }
+}
+```
+
+Mas ainda falta testar bem esses dois implicit operator. 
+Além disso, e se a gente transformasse cada operação de tags=tags.Add pra tags+= ? E tags.Remove pra tags-= ?
+Também precisamos fazer uma limpeza e dividir esses testes talvez em 5 arquivos: Testes de criação, Add, Remove e Gerais. O Arquivo de testes está ficando muito grande.
+Além disso está faltando um teste para o método GetTags (que retorna um array de string[]). Esse método não foi nem utilizado e não sei se GetTags é um nome apropriado pra ele. ToArray parece mais apropriado mas eu gostaria de evitar para não dar a impressão de que estamos implementando IEnumerable.
+Como nosso conteúdo é imutável, poderíamos guardar ele direto em uma string em vez de um ImmutableHashSet. Assim as consultas a ele, comparações e o ToString poderiam ficar mais performáticos.
+Mas se fizermos isso ficaria mais difícil implementar IEnumerable (para navegar entre as tags). Mas será que queremos fazer isso?
+Também precisamos decidir se vamos implementar IComparable e IEquatable.
