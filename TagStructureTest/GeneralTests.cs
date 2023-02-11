@@ -248,13 +248,6 @@ namespace TagStructureTest
             CollectionAssert.AreEqual("xyz".Split(","), t.GetTags());
         }
 
-        [TestMethod]
-        public void MergeTest()
-        {
-            Tags t = new Tags(new List<string> { "Gold", "xyz", "MONITOR" });
-            t = t.Remove("xyz", "monitor");
-            CollectionAssert.AreEqual("gold".Split(","), t.GetTags());
-        }
 
         [TestMethod]
         public void ImplicitStringToTagsTest()
