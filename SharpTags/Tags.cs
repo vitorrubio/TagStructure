@@ -212,6 +212,22 @@ namespace SharpTags
         /// <returns></returns>
         public static bool operator !=(Tags left, Tags right) => !(left == right);
 
+        /// <summary>
+        /// Addition operator overloading (+)
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static Tags operator +(Tags a, Tags b) => a.Add(b);
+
+        /// <summary>
+        /// subtraction operator overloading (-)
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static Tags operator -(Tags a, Tags b) => a.Remove(b);
+
         #endregion
     }
 }
