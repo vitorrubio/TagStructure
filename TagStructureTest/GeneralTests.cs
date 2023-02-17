@@ -63,7 +63,7 @@ namespace TagStructureTest
         {
             string? s0 = null;
 
-            Tags t = new Tags(s0);
+            Tags t = new Tags(s0!);
 
             Assert.IsNotNull(t);
             Assert.AreEqual(0, t.GetTags().Length);
@@ -232,8 +232,8 @@ namespace TagStructureTest
             CollectionAssert.AreEqual("xyz".Split(","), t.GetTags());
 
             Tags q = new Tags(new List<string> { "Gold", "xyz", "MONITOR" });
-            t = t.Remove("  golD", "monitor  ");
-            CollectionAssert.AreEqual("xyz".Split(","), t.GetTags());
+            q = q.Remove("  golD", "monitor  ");
+            CollectionAssert.AreEqual("xyz".Split(","), q.GetTags());
         }
 
         [TestMethod]
@@ -244,8 +244,8 @@ namespace TagStructureTest
             CollectionAssert.AreEqual("xyz".Split(","), t.GetTags());
 
             Tags q = new Tags(new List<string> { "Gold", "xyz", "MONITOR" });
-            t = t.Remove(new Tags(new List<string> { "  golD", "monitor  " }));
-            CollectionAssert.AreEqual("xyz".Split(","), t.GetTags());
+            q = q.Remove(new Tags(new List<string> { "  golD", "monitor  " }));
+            CollectionAssert.AreEqual("xyz".Split(","), q.GetTags());
         }
 
 

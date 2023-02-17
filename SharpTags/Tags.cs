@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 
 namespace SharpTags
 {
     /// <summary>
     /// a struct (Value Type) representing a collection of unique tags
     /// </summary>
-    public struct Tags : IEquatable<Tags>
+    public readonly partial struct Tags : IEquatable<Tags>
     {
         #region private fields
         /// <summary>
         /// ImmutableHashSet with the tags
         /// </summary>
         private readonly ImmutableHashSet<string> _taglist;
+
+        private static readonly Regex _rx = GenerateRegex();
 
         #endregion
 
@@ -41,16 +44,18 @@ namespace SharpTags
         /// <param name="t"></param>
         public Tags(params string[]? t)
         {
-            if (t != null && t.Count() > 0)
+            if (t != null && t.Any())
             {
-                var tagsToAdd = t.Where(x => !string.IsNullOrWhiteSpace(x)).SelectMany(x => x!.Split(",")).Select(x => x.Trim().ToLower()).ToArray();
-                _taglist = ImmutableHashSet.Create<string>(tagsToAdd);
+                string[] tagsToAdd = ExtractTags(t);
+                _taglist = ImmutableHashSet.Create(tagsToAdd);
             }
             else
             {
                 _taglist = ImmutableHashSet.Create<string>();
             }
         }
+
+
         #endregion
 
 
@@ -72,7 +77,7 @@ namespace SharpTags
         /// <returns></returns>
         public override int GetHashCode()
         {
-            return this.ToString().GetHashCode();
+            return ToString().GetHashCode();
         }
 
         /// <summary>
@@ -88,12 +93,12 @@ namespace SharpTags
                 return false;
             }
 
-            if ((!(obj is Tags)) && (!(obj is string)))
+            if (obj is not Tags && (obj is not string))
             {
                 return false;
             }
 
-            return this.ToString().Equals(obj.ToString());
+            return ToString().Equals(obj.ToString());
         }
 
         /// <summary>
@@ -104,7 +109,7 @@ namespace SharpTags
         /// <exception cref="NotImplementedException"></exception>
         public bool Equals(Tags other)
         {
-            return this.ToString().Equals(other.ToString());
+            return ToString().Equals(other.ToString());
         }
 
         #endregion
@@ -120,7 +125,7 @@ namespace SharpTags
         /// <returns></returns>
         public Tags Add(IEnumerable<string>? t)
         {
-            return this.Add(t?.ToArray());
+            return Add(t?.ToArray());
         }
 
         /// <summary>
@@ -132,7 +137,7 @@ namespace SharpTags
         {
             if (t != null && t.Length > 0)
             {
-                var tagsToAdd = t.Where(x => !string.IsNullOrWhiteSpace(x)).SelectMany(x => x!.Split(",")).Select(x => x.Trim().ToLower());
+                var tagsToAdd = ExtractTags(t);
                 return new Tags(_taglist.Union(tagsToAdd));
             }
 
@@ -146,7 +151,7 @@ namespace SharpTags
         /// <returns></returns>
         public Tags Remove(IEnumerable<string>? t)
         {
-            return this.Remove(t?.ToArray());
+            return Remove(t?.ToArray());
         }
 
         /// <summary>
@@ -158,7 +163,7 @@ namespace SharpTags
         {
             if (t != null && t.Length > 0)
             {
-                var tagsToRemove = t.Where(x => !string.IsNullOrWhiteSpace(x)).SelectMany(x => x!.Split(",")).Select(x => x.Trim().ToLower());
+                var tagsToRemove = ExtractTags(t);
                 return new Tags(_taglist.Except(tagsToRemove));
             }
             return new Tags(_taglist);
@@ -170,7 +175,7 @@ namespace SharpTags
         /// <returns></returns>
         public string[] GetTags()
         {
-            return this._taglist.Select(x => x.Trim().ToLower()).OrderBy(x => x).Distinct().ToArray();
+            return _taglist.Select(x => x.Trim().ToLower()).OrderBy(x => x).Distinct().ToArray();
         }
 
 
@@ -191,7 +196,7 @@ namespace SharpTags
         /// implicit string to Tags conversion
         /// </summary>
         /// <param name="s"></param>
-        public static implicit operator Tags(string s) => new Tags(s);
+        public static implicit operator Tags(string s) => new(s);
 
         /// <summary>
         /// equality == operator overloading
@@ -229,5 +234,31 @@ namespace SharpTags
         public static Tags operator -(Tags a, Tags b) => a.Remove(b);
 
         #endregion
+
+
+
+
+
+        #region private methods
+
+        /// <summary>
+        /// split and clean tags
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        private static string[] ExtractTags(string[] t)
+        {
+            return t.Where(x => !string.IsNullOrWhiteSpace(x))
+                .SelectMany(x => x!.Split(","))
+                .Select(x => x.Trim().ToLower().Replace(" ", "-"))
+                .Where(x => !string.IsNullOrWhiteSpace(x) && _rx.IsMatch(x))
+                .ToArray();
+        }
+
+        [GeneratedRegex("^[a-z0-9\\-]{3,}$", RegexOptions.Compiled)]
+        private static partial Regex GenerateRegex();
+
+        #endregion
+
     }
 }
